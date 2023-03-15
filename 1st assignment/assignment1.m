@@ -40,9 +40,9 @@ for i = 1:n_sim
 
     % % for beta vector (0,0,0,0)
     % get Y as prod X*beta (zero since beta is zero) plus some noise
-    Y_mat_zero1 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(1)));
-    Y_mat_zero2 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(2)));
-    Y_mat_zero3 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(3)));
+    Y_mat_zero1 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(1)), [n_obs, 1]);
+    Y_mat_zero2 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(2)), [n_obs, 1]);
+    Y_mat_zero3 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
 
     % calculate the beta hat for each of the 3 versions
     beta_hat_vec_zero1 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_zero1;
@@ -67,9 +67,9 @@ for i = 1:n_sim
 
     % % for beta vector (1,1,1,1)
     % get Y as prod X*beta (zero since beta is zero) plus some noise
-    Y_mat_one1 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(1)));
-    Y_mat_one2 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(2)));
-    Y_mat_one3 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(3)));
+    Y_mat_one1 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(1)), [n_obs, 1]);
+    Y_mat_one2 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(2)), [n_obs, 1]);
+    Y_mat_one3 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
 
     % calculate the beta hat for each of the 3 versions
     beta_hat_vec_one1 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_one1;
@@ -164,7 +164,7 @@ end
 %   1 and 2, and not done new for each of the sim=1e4 times. What of course is different each time is the 
 %   vector of U values -- you need to simulate an AR(1) time series model to get the error terms for the 
 %   regression!
-
+%
 % So, once you can simulate this, do the simulation of the sim values, and report some kind of graphic or 
 %   tables of the accuracy of beta and ar(1) parameter a. Now, you do this also for a grid of a-values, 
 %   namely 0.0, 0.2, 0.4, 0.6, 0.8, and 0.99. Notice you do NOT need to compare to the exact MLE -- you do 

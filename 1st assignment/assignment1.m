@@ -40,25 +40,25 @@ for i = 1:n_sim
 
     % % for beta vector (0,0,0,0)
     % get Y as prod X*beta (zero since beta is zero) plus some noise
-    Y_mat_zero1 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(1)), [n_obs, 1]);
-    Y_mat_zero2 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(2)), [n_obs, 1]);
-    Y_mat_zero3 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
+    Y_vec_zero1 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(1)), [n_obs, 1]); % could just write only the noise term but Xb is written for completeness sake
+    Y_vec_zero2 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(2)), [n_obs, 1]);
+    Y_vec_zero3 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
 
     % calculate the beta hat for each of the 3 versions
-    beta_hat_vec_zero1 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_zero1;
-    beta_hat_vec_zero2 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_zero2;
-    beta_hat_vec_zero3 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_zero3;
+    beta_hat_vec_zero1 = (X_mat' * X_mat) \ X_mat' * Y_vec_zero1;
+    beta_hat_vec_zero2 = (X_mat' * X_mat) \ X_mat' * Y_vec_zero2;
+    beta_hat_vec_zero3 = (X_mat' * X_mat) \ X_mat' * Y_vec_zero3;
 
     % calculate the Y hat for each of the 3 versions
-    Y_hat_mat_zero1 = X_mat * beta_hat_vec_zero1;
-    Y_hat_mat_zero2 = X_mat * beta_hat_vec_zero2;
-    Y_hat_mat_zero3 = X_mat * beta_hat_vec_zero3;
+    Y_hat_vec_zero1 = X_mat * beta_hat_vec_zero1;
+    Y_hat_vec_zero2 = X_mat * beta_hat_vec_zero2;
+    Y_hat_vec_zero3 = X_mat * beta_hat_vec_zero3;
 
     % calculate the realization of the (empirical) R2 r.v. 
     %   (R2 = ESS/TSS = 1 - RSS/TSS)
-    R2_zero1(i) = 1 - sum((Y_mat_zero1 - Y_hat_mat_zero1).^2 / sum(Y_mat_zero1 - mean(Y_hat_mat_zero1)).^2);
-    R2_zero2(i) = 1 - sum((Y_mat_zero2 - Y_hat_mat_zero2).^2 / sum(Y_mat_zero1 - mean(Y_hat_mat_zero1)).^2);
-    R2_zero3(i) = 1 - sum((Y_mat_zero3 - Y_hat_mat_zero3).^2 / sum(Y_mat_zero1 - mean(Y_hat_mat_zero1)).^2);
+    R2_zero1(i) = 1 - sum((Y_vec_zero1 - Y_hat_vec_zero1).^2 / sum(Y_vec_zero1 - mean(Y_vec_zero1)).^2);
+    R2_zero2(i) = 1 - sum((Y_vec_zero2 - Y_hat_vec_zero2).^2 / sum(Y_vec_zero2 - mean(Y_vec_zero2)).^2);
+    R2_zero3(i) = 1 - sum((Y_vec_zero3 - Y_hat_vec_zero3).^2 / sum(Y_vec_zero3 - mean(Y_vec_zero3)).^2);
 
     % calculate the (empirical) F statistic
     F_zero1(i) = (n_obs - n_regressors -1)/n_regressors * R2_zero1(i) /(1-R2_zero1(i));
@@ -72,9 +72,9 @@ for i = 1:n_sim
     Y_mat_one3 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
 
     % calculate the beta hat for each of the 3 versions
-    beta_hat_vec_one1 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_one1;
-    beta_hat_vec_one2 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_one2;
-    beta_hat_vec_one3 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_one3;
+    beta_hat_vec_one1 = (X_mat' * X_mat) \ X_mat' * Y_mat_one1;
+    beta_hat_vec_one2 = (X_mat' * X_mat) \ X_mat' * Y_mat_one2;
+    beta_hat_vec_one3 = (X_mat' * X_mat) \ X_mat' * Y_mat_one3;
 
     % calculate the Y hat for each of the 3 versions
     Y_hat_mat_one1 = X_mat * beta_hat_vec_one1;
@@ -83,11 +83,12 @@ for i = 1:n_sim
 
     % calculate the realization of the (empirical) R2 r.v. 
     %   (R2 = ESS/TSS = 1 - RSS/TSS)
-    R2_one1(i) = 1 - sum((Y_mat_one1 - Y_hat_mat_one1).^2);
-    R2_one2(i) = 1 - sum((Y_mat_one2 - Y_hat_mat_one2).^2);
-    R2_one3(i) = 1 - sum((Y_mat_one3 - Y_hat_mat_one3).^2);
+    R2_one1(i) = 1 - sum((Y_mat_one1 - Y_hat_mat_one1).^2) / sum((Y_mat_one1 - mean(Y_mat_one1)).^2);
+    R2_one2(i) = 1 - sum((Y_mat_one2 - Y_hat_mat_one2).^2) / sum((Y_mat_one2 - mean(Y_mat_one2)).^2);
+    R2_one3(i) = 1 - sum((Y_mat_one3 - Y_hat_mat_one3).^2) / sum((Y_mat_one3 - mean(Y_mat_one3)).^2);
 
-    % calculate the (empirical) F statistic
+    % calculate the (empirical) F statistic (take J as n_regressors, i.e.,
+    %   without the beta0)
     F_one1(i) = (n_obs - n_regressors -1)/n_regressors * R2_one1(i) /(1-R2_one1(i));
     F_one2(i) = (n_obs - n_regressors -1)/n_regressors * R2_one2(i) /(1-R2_one2(i));
     F_one3(i) = (n_obs - n_regressors -1)/n_regressors * R2_one3(i) /(1-R2_one3(i));
@@ -154,12 +155,32 @@ title('F, \beta = (1,1,1,1)')
 %   regressors increases. Discuss what you find, and why it is occurring.
 n_obs = 100; % same as T
 k = 2:10;
-n_regressors = 3;
 n_sim = 1e4;
+s2 = 2;
 
-for i = 1:n_sim
-    X_mat = [ones(n_obs, 1), randnorm(0, 1, n_obs, n_regressors)];
+
+% initialize variables
+R2_mat = zeros(n_obs, length(k));
+
+% calculate the R2 
+for j = k
+    beta_vec_zero = zeros(1, j+1)';
+    for i = 1:n_sim
+        X_mat = [ones(n_obs, 1), normrnd(0, 1, [n_obs, j])];
+        Y_vec = X_mat * beta_vec_zero + normrnd(0, sqrt(s2), [n_obs, 1]); % could just write only the noise term but Xb is written for completeness sake
+        beta_hat_vec = (X_mat' * X_mat) \ X_mat' * Y_vec;
+        Y_hat_vec = X_mat * beta_hat_vec;
+        R2_mat(i,j-1) = 1 - sum((Y_vec - Y_hat_vec).^2) / sum((Y_vec - mean(Y_vec)).^2);
+    end
 end
+
+%% boxplots
+R2_cat = {R2_mat};
+labels = {k};
+
+%figure('Position', [400 75 500 300])
+%boxplotGroup(R2_cat, 'interGroupSpace', 5, 'PrimaryLabels', labels)
+%title('R^2 for different number of regressors', 'FontName', 'FixedWidth')
 %% 3:
 % Go and look at the regression model with AR(1) disturbances (and Gaussian innovations), equation lines 
 %   5.1 and 5.2 in our book. For each of two sample sizes, namely T=20 and T=50, you are to simulate the 

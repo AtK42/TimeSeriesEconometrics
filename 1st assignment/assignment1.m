@@ -1,4 +1,4 @@
-%% 1: 
+%% 1: constant X matrix, null and al
 % Via simulation, compare the theoretical distribution of the R^2 statistic, and the F statistic, 
 %   to its empirically obtained one. Do so for a fixed X matrix of size 50 X 4, with a column of ones, 
 %   and 3 regressors, each obtained as IID data from a normal distribution. The X matrix stays the same 
@@ -56,9 +56,9 @@ for i = 1:n_sim
 
     % calculate the realization of the (empirical) R2 r.v. 
     %   (R2 = ESS/TSS = 1 - RSS/TSS)
-    R2_zero1(i) = 1 - sum((Y_mat_zero1 - Y_hat_mat_zero1).^2);
-    R2_zero2(i) = 1 - sum((Y_mat_zero2 - Y_hat_mat_zero2).^2);
-    R2_zero3(i) = 1 - sum((Y_mat_zero3 - Y_hat_mat_zero3).^2);
+    R2_zero1(i) = 1 - sum((Y_mat_zero1 - Y_hat_mat_zero1).^2 / sum(Y_mat_zero1 - mean(Y_hat_mat_zero1)).^2);
+    R2_zero2(i) = 1 - sum((Y_mat_zero2 - Y_hat_mat_zero2).^2 / sum(Y_mat_zero1 - mean(Y_hat_mat_zero1)).^2);
+    R2_zero3(i) = 1 - sum((Y_mat_zero3 - Y_hat_mat_zero3).^2 / sum(Y_mat_zero1 - mean(Y_hat_mat_zero1)).^2);
 
     % calculate the (empirical) F statistic
     F_zero1(i) = (n_obs - n_regressors -1)/n_regressors * R2_zero1(i) /(1-R2_zero1(i));
@@ -88,54 +88,59 @@ for i = 1:n_sim
     R2_one3(i) = 1 - sum((Y_mat_one3 - Y_hat_mat_one3).^2);
 
     % calculate the (empirical) F statistic
-    F_zero1(i) = (n_obs - n_regressors -1)/n_regressors * R2_one1(i) /(1-R2_one1(i));
-    F_zero2(i) = (n_obs - n_regressors -1)/n_regressors * R2_one2(i) /(1-R2_one2(i));
-    F_zero3(i) = (n_obs - n_regressors -1)/n_regressors * R2_one3(i) /(1-R2_one3(i));
+    F_one1(i) = (n_obs - n_regressors -1)/n_regressors * R2_one1(i) /(1-R2_one1(i));
+    F_one2(i) = (n_obs - n_regressors -1)/n_regressors * R2_one2(i) /(1-R2_one2(i));
+    F_one3(i) = (n_obs - n_regressors -1)/n_regressors * R2_one3(i) /(1-R2_one3(i));
 end
 
-% plotting the simulated values against the theoretical ones for the first
+% [~,~,~,~,statistics] = regress(Y_mat, X_mat);
+% R2(i) = statistics(1);
+% F(i) = statistics(2);
+
+%% plotting the simulated values against the theoretical ones for the first
 %   part
-x_vals_plot = -4:.01:4;
+x_vals_R2_plot = -3:.01:3;
+x_vals_F_plot = -100:1:100;
 
-theo_R2 = betapdf(x_vals_plot, (n_regressors)/2, (n_obs-n_regressors-1)/2); % k includes beta0
-theo_F = fpdf(x_vals_plot, n_regressors, n_obs-n_regressors-1);
+theo_R2 = betapdf(x_vals_R2_plot, (n_regressors)/2, (n_obs-n_regressors-1)/2); % k includes beta0
+theo_F = fpdf(x_vals_F_plot, n_regressors, n_obs-n_regressors-1);
 
-emp_R2_zero1 = ksdensity(R2_zero1, x_vals_plot); emp_R2_one1 = ksdensity(R2_one1, x_vals_plot);
-emp_R2_zero2 = ksdensity(R2_zero2, x_vals_plot); emp_R2_one2 = ksdensity(R2_one2, x_vals_plot);
-emp_R2_zero3 = ksdensity(R2_zero3, x_vals_plot); emp_R2_one3 = ksdensity(R2_one3, x_vals_plot);
+emp_R2_zero1 = ksdensity(R2_zero1, x_vals_R2_plot); emp_R2_one1 = ksdensity(R2_one1, x_vals_R2_plot);
+emp_R2_zero2 = ksdensity(R2_zero2, x_vals_R2_plot); emp_R2_one2 = ksdensity(R2_one2, x_vals_R2_plot);
+emp_R2_zero3 = ksdensity(R2_zero3, x_vals_R2_plot); emp_R2_one3 = ksdensity(R2_one3, x_vals_R2_plot);
 
-emp_F_zero1 = ksdensity(F_zero1, x_vals_plot); emp_F_one1 = ksdensity(F_one1, x_vals_plot);
-emp_F_zero2 = ksdensity(F_zero2, x_vals_plot); emp_F_one2 = ksdensity(F_one2, x_vals_plot);
-emp_F_zero3 = ksdensity(F_zero3, x_vals_plot); emp_F_one3 = ksdensity(F_one3, x_vals_plot);
+emp_F_zero1 = ksdensity(F_zero1, x_vals_F_plot); emp_F_one1 = ksdensity(F_one1, x_vals_F_plot);
+emp_F_zero2 = ksdensity(F_zero2, x_vals_F_plot); emp_F_one2 = ksdensity(F_one2, x_vals_F_plot);
+emp_F_zero3 = ksdensity(F_zero3, x_vals_F_plot); emp_F_one3 = ksdensity(F_one3, x_vals_F_plot);
 
-% plotting (insert figures)
+
 figure
-plot(x_vals_plot, theo_R2, 'k--', ...
-     x_vals_plot, emp_R2_zero1, 'r-', ...
-     x_vals_plot, emp_R2_zero2, 'g-', ...
-     x_vals_plot, emp_R2_zero3, 'b-')
+plot(x_vals_R2_plot, theo_R2, 'k--', ...
+     x_vals_R2_plot, emp_R2_zero1, 'r-', ...
+     x_vals_R2_plot, emp_R2_zero2, 'g-', ...
+     x_vals_R2_plot, emp_R2_zero3, 'b-')
 legend('theoretical R2', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('R^2, \beta = (0,0,0,0)')
 
 figure
-plot(x_vals_plot, theo_F, 'k--',...
-     x_vals_plot, emp_F_zero1, 'r-', ...
-     x_vals_plot, emp_F_zero2, 'g-', ...
-     x_vals_plot, emp_F_zero3, 'b-')
+plot(x_vals_F_plot, theo_F, 'k--',...
+     x_vals_F_plot, emp_F_zero1, 'r-', ...
+     x_vals_F_plot, emp_F_zero2, 'g-', ...
+     x_vals_F_plot, emp_F_zero3, 'b-')
 legend('theoretical F', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('F, \beta = (0,0,0,0)')
 
 figure
-plot(x_vals_plot, emp_R2_one1, 'r-', ...
-     x_vals_plot, emp_R2_one2, 'g-', ...
-     x_vals_plot, emp_R2_one3, 'b-')
+plot(x_vals_R2_plot, emp_R2_one1, 'r-', ...
+     x_vals_R2_plot, emp_R2_one2, 'g-', ...
+     x_vals_R2_plot, emp_R2_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('R^2, \beta = (1,1,1,1)')
 
 figure
-plot(x_vals_plot, emp_F_one1, 'r-', ...
-     x_vals_plot, emp_F_one2, 'g-', ...
-     x_vals_plot, emp_F_one3, 'b-')
+plot(x_vals_F_plot, emp_F_one1, 'r-', ...
+     x_vals_F_plot, emp_F_one2, 'g-', ...
+     x_vals_F_plot, emp_F_one3, 'b--')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('F, \beta = (1,1,1,1)')
 

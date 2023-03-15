@@ -45,9 +45,9 @@ for i = 1:n_sim
     Y_mat_zero3 = X_mat * beta_vec_zero + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
 
     % calculate the beta hat for each of the 3 versions
-    beta_hat_vec_zero1 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_zero1;
-    beta_hat_vec_zero2 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_zero2;
-    beta_hat_vec_zero3 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_zero3;
+    beta_hat_vec_zero1 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_zero1;
+    beta_hat_vec_zero2 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_zero2;
+    beta_hat_vec_zero3 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_zero3;
 
     % calculate the Y hat for each of the 3 versions
     Y_hat_mat_zero1 = X_mat * beta_hat_vec_zero1;
@@ -72,9 +72,9 @@ for i = 1:n_sim
     Y_mat_one3 = X_mat * beta_vec_one + normrnd(0, sqrt(s2_vec(3)), [n_obs, 1]);
 
     % calculate the beta hat for each of the 3 versions
-    beta_hat_vec_one1 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_one1;
-    beta_hat_vec_one2 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_one2;
-    beta_hat_vec_one3 = (X_mat' * X_mat)^(-1) * X_mat' * Y_mat_one3;
+    beta_hat_vec_one1 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_one1;
+    beta_hat_vec_one2 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_one2;
+    beta_hat_vec_one3 = inv((X_mat' * X_mat)) * X_mat' * Y_mat_one3;
 
     % calculate the Y hat for each of the 3 versions
     Y_hat_mat_one1 = X_mat * beta_hat_vec_one1;
@@ -108,13 +108,14 @@ emp_F_zero1 = ksdensity(F_zero1, x_vals_plot); emp_F_one1 = ksdensity(F_one1, x_
 emp_F_zero2 = ksdensity(F_zero2, x_vals_plot); emp_F_one2 = ksdensity(F_one2, x_vals_plot);
 emp_F_zero3 = ksdensity(F_zero3, x_vals_plot); emp_F_one3 = ksdensity(F_one3, x_vals_plot);
 
+% plotting (insert figures)
 figure
 plot(x_vals_plot, theo_R2, 'k--', ...
      x_vals_plot, emp_R2_zero1, 'r-', ...
      x_vals_plot, emp_R2_zero2, 'g-', ...
      x_vals_plot, emp_R2_zero3, 'b-')
 legend('theoretical R2', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('R^2 \beta = (0,0,0,0)')
+title('R^2, \beta = (0,0,0,0)')
 
 figure
 plot(x_vals_plot, theo_F, 'k--',...
@@ -122,21 +123,21 @@ plot(x_vals_plot, theo_F, 'k--',...
      x_vals_plot, emp_F_zero2, 'g-', ...
      x_vals_plot, emp_F_zero3, 'b-')
 legend('theoretical F', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('F \beta = (0,0,0,0)')
+title('F, \beta = (0,0,0,0)')
 
 figure
 plot(x_vals_plot, emp_R2_one1, 'r-', ...
      x_vals_plot, emp_R2_one2, 'g-', ...
      x_vals_plot, emp_R2_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('R^2 \beta = (1,1,1,1)')
+title('R^2, \beta = (1,1,1,1)')
 
 figure
 plot(x_vals_plot, emp_F_one1, 'r-', ...
      x_vals_plot, emp_F_one2, 'g-', ...
      x_vals_plot, emp_F_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('F \beta = (1,1,1,1)')
+title('F, \beta = (1,1,1,1)')
 
 %% 2:
 % Fix the sample size at T=100. For the number of regressors k=2,3,...,10, simulate sim=1e4 replications 

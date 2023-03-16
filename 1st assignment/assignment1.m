@@ -100,12 +100,12 @@ end
 
 %% plotting the simulated values against the theoretical ones for the first
 %   part
-x_vals_R2_plot = -.1:.01:1.1;
-x_vals_zero_F_plot = -1:1:100;
+x_vals_R2_plot = -.1:.01:1;
+x_vals_zero_F_plot = -1:1:20;
 x_vals_one_F_plot = -1:1:100;
 
 theo_R2 = betapdf(x_vals_R2_plot, (n_regressors)/2, (n_obs-n_regressors-1)/2); % k includes beta0
-theo_F = fpdf(x_vals_F_plot, n_regressors, n_obs-n_regressors-1);
+theo_F = fpdf(x_vals_zero_F_plot, n_regressors, n_obs-n_regressors-1);
 
 emp_R2_zero1 = ksdensity(R2_zero1, x_vals_R2_plot); emp_R2_one1 = ksdensity(R2_one1, x_vals_R2_plot);
 emp_R2_zero2 = ksdensity(R2_zero2, x_vals_R2_plot); emp_R2_one2 = ksdensity(R2_one2, x_vals_R2_plot);
@@ -121,16 +121,16 @@ plot(x_vals_R2_plot, theo_R2, 'k-', ...
      x_vals_R2_plot, emp_R2_zero2, 'g:', ...
      x_vals_R2_plot, emp_R2_zero3, 'b-.')
 legend('theoretical R2', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('R^2, \beta = (0,0,0,0)')
+title('distribution of R^2 for \beta = (0,0,0,0)')
 grid()
 
 figure
-plot(x_vals_F_plot, theo_F, 'k-',...
+plot(x_vals_zero_F_plot, theo_F, 'k-',...
      x_vals_zero_F_plot, emp_F_zero1, 'r--', ...
      x_vals_zero_F_plot, emp_F_zero2, 'g:', ...
      x_vals_zero_F_plot, emp_F_zero3, 'b-.')
 legend('theoretical F', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('F, \beta = (0,0,0,0)')
+title('distribution of F for \beta = (0,0,0,0)')
 grid()
 
 figure
@@ -138,7 +138,7 @@ plot(x_vals_R2_plot, emp_R2_one1, 'r-', ...
      x_vals_R2_plot, emp_R2_one2, 'g-', ...
      x_vals_R2_plot, emp_R2_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('R^2, \beta = (1,1,1,1)')
+title('distribution of R^2 for \beta = (1,1,1,1)')
 grid()
 
 figure
@@ -146,7 +146,7 @@ plot(x_vals_one_F_plot, emp_F_one1, 'r-', ...
      x_vals_one_F_plot, emp_F_one2, 'g-', ...
      x_vals_one_F_plot, emp_F_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
-title('F, \beta = (1,1,1,1)')
+title('distribution of F for \beta = (1,1,1,1)')
 grid()
 
 %% 2:
@@ -179,12 +179,13 @@ for j = k
 end
 
 %% boxplots
-R2_cat = {R2_mat};
-labels = {k};
+figure
+boxplot(R2_mat, k, 'Notch', 'on', 'Whisker', 1.5)
+title('R^2 for different number of regressors', 'FontName', 'FixedWidth')
+xlabel('number of regressors')
 
-%figure('Position', [400 75 500 300])
-%boxplotGroup(R2_cat, 'interGroupSpace', 5, 'PrimaryLabels', labels)
-%title('R^2 for different number of regressors', 'FontName', 'FixedWidth')
+upper_limit = quantile(R2_mat, .25) + iqr(R2_mat);
+
 %% 3:
 % Go and look at the regression model with AR(1) disturbances (and Gaussian innovations), equation lines 
 %   5.1 and 5.2 in our book. For each of two sample sizes, namely T=20 and T=50, you are to simulate the 

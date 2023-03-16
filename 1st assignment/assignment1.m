@@ -56,9 +56,9 @@ for i = 1:n_sim
 
     % calculate the realization of the (empirical) R2 r.v. 
     %   (R2 = ESS/TSS = 1 - RSS/TSS)
-    R2_zero1(i) = 1 - sum((Y_vec_zero1 - Y_hat_vec_zero1).^2) / sum(Y_vec_zero1 - mean(Y_vec_zero1).^2);
-    R2_zero2(i) = 1 - sum((Y_vec_zero2 - Y_hat_vec_zero2).^2) / sum(Y_vec_zero2 - mean(Y_vec_zero2).^2);
-    R2_zero3(i) = 1 - sum((Y_vec_zero3 - Y_hat_vec_zero3).^2) / sum(Y_vec_zero3 - mean(Y_vec_zero3).^2);
+    R2_zero1(i) = 1 - sum((Y_vec_zero1 - Y_hat_vec_zero1).^2) / sum((Y_vec_zero1 - mean(Y_vec_zero1)).^2);
+    R2_zero2(i) = 1 - sum((Y_vec_zero2 - Y_hat_vec_zero2).^2) / sum((Y_vec_zero2 - mean(Y_vec_zero2)).^2);
+    R2_zero3(i) = 1 - sum((Y_vec_zero3 - Y_hat_vec_zero3).^2) / sum((Y_vec_zero3 - mean(Y_vec_zero3)).^2);
 
     % calculate the (empirical) F statistic
     F_zero1(i) = (n_obs - n_regressors -1)/n_regressors * R2_zero1(i) /(1-R2_zero1(i));
@@ -101,7 +101,8 @@ end
 %% plotting the simulated values against the theoretical ones for the first
 %   part
 x_vals_R2_plot = -.1:.01:1.1;
-x_vals_F_plot = -1:1:150;
+x_vals_zero_F_plot = -1:1:100;
+x_vals_one_F_plot = -1:1:100;
 
 theo_R2 = betapdf(x_vals_R2_plot, (n_regressors)/2, (n_obs-n_regressors-1)/2); % k includes beta0
 theo_F = fpdf(x_vals_F_plot, n_regressors, n_obs-n_regressors-1);
@@ -110,26 +111,27 @@ emp_R2_zero1 = ksdensity(R2_zero1, x_vals_R2_plot); emp_R2_one1 = ksdensity(R2_o
 emp_R2_zero2 = ksdensity(R2_zero2, x_vals_R2_plot); emp_R2_one2 = ksdensity(R2_one2, x_vals_R2_plot);
 emp_R2_zero3 = ksdensity(R2_zero3, x_vals_R2_plot); emp_R2_one3 = ksdensity(R2_one3, x_vals_R2_plot);
 
-emp_F_zero1 = ksdensity(F_zero1, x_vals_F_plot); emp_F_one1 = ksdensity(F_one1, x_vals_F_plot);
-emp_F_zero2 = ksdensity(F_zero2, x_vals_F_plot); emp_F_one2 = ksdensity(F_one2, x_vals_F_plot);
-emp_F_zero3 = ksdensity(F_zero3, x_vals_F_plot); emp_F_one3 = ksdensity(F_one3, x_vals_F_plot);
-
+emp_F_zero1 = ksdensity(F_zero1, x_vals_zero_F_plot); emp_F_one1 = ksdensity(F_one1, x_vals_one_F_plot);
+emp_F_zero2 = ksdensity(F_zero2, x_vals_zero_F_plot); emp_F_one2 = ksdensity(F_one2, x_vals_one_F_plot);
+emp_F_zero3 = ksdensity(F_zero3, x_vals_zero_F_plot); emp_F_one3 = ksdensity(F_one3, x_vals_one_F_plot);
 
 figure
-plot(x_vals_R2_plot, theo_R2, 'k--', ...
-     x_vals_R2_plot, emp_R2_zero1, 'r-', ...
-     x_vals_R2_plot, emp_R2_zero2, 'g-', ...
-     x_vals_R2_plot, emp_R2_zero3, 'b-')
+plot(x_vals_R2_plot, theo_R2, 'k-', ...
+     x_vals_R2_plot, emp_R2_zero1, 'r--', ...
+     x_vals_R2_plot, emp_R2_zero2, 'g:', ...
+     x_vals_R2_plot, emp_R2_zero3, 'b-.')
 legend('theoretical R2', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('R^2, \beta = (0,0,0,0)')
+grid()
 
 figure
-plot(x_vals_F_plot, theo_F, 'k--',...
-     x_vals_F_plot, emp_F_zero1, 'r-', ...
-     x_vals_F_plot, emp_F_zero2, 'g-', ...
-     x_vals_F_plot, emp_F_zero3, 'b-')
+plot(x_vals_F_plot, theo_F, 'k-',...
+     x_vals_zero_F_plot, emp_F_zero1, 'r--', ...
+     x_vals_zero_F_plot, emp_F_zero2, 'g:', ...
+     x_vals_zero_F_plot, emp_F_zero3, 'b-.')
 legend('theoretical F', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('F, \beta = (0,0,0,0)')
+grid()
 
 figure
 plot(x_vals_R2_plot, emp_R2_one1, 'r-', ...
@@ -137,13 +139,15 @@ plot(x_vals_R2_plot, emp_R2_one1, 'r-', ...
      x_vals_R2_plot, emp_R2_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('R^2, \beta = (1,1,1,1)')
+grid()
 
 figure
-plot(x_vals_F_plot, emp_F_one1, 'r-', ...
-     x_vals_F_plot, emp_F_one2, 'g-', ...
-     x_vals_F_plot, emp_F_one3, 'b-')
+plot(x_vals_one_F_plot, emp_F_one1, 'r-', ...
+     x_vals_one_F_plot, emp_F_one2, 'g-', ...
+     x_vals_one_F_plot, emp_F_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('F, \beta = (1,1,1,1)')
+grid()
 
 %% 2:
 % Fix the sample size at T=100. For the number of regressors k=2,3,...,10, simulate sim=1e4 replications 

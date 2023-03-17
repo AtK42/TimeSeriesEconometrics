@@ -100,9 +100,9 @@ end
 
 %% plotting the simulated values against the theoretical ones for the first
 %   part
-x_vals_R2_plot = -.1:.01:1;
-x_vals_zero_F_plot = -1:1:20;
-x_vals_one_F_plot = -1:1:100;
+x_vals_R2_plot = -.01:.001:1;
+x_vals_zero_F_plot = -.01:.01:20;
+x_vals_one_F_plot = -.01:.01:100;
 
 theo_R2 = betapdf(x_vals_R2_plot, (n_regressors)/2, (n_obs-n_regressors-1)/2); % k includes beta0
 theo_F = fpdf(x_vals_zero_F_plot, n_regressors, n_obs-n_regressors-1);
@@ -184,7 +184,7 @@ boxplot(R2_mat, k, 'Notch', 'on', 'Whisker', 1.5)
 title('R^2 for different number of regressors', 'FontName', 'FixedWidth')
 xlabel('number of regressors')
 
-upper_limit = quantile(R2_mat, .25) + iqr(R2_mat);
+%upper_limit = quantile(R2_mat, .25) + iqr(R2_mat);
 
 %% 3:
 % Go and look at the regression model with AR(1) disturbances (and Gaussian innovations), equation lines 

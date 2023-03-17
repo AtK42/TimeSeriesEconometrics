@@ -1,4 +1,4 @@
-%% 1: constant X matrix, null and al
+%% 1: constant X matrix, null and all ones betas
 % Via simulation, compare the theoretical distribution of the R^2 statistic, and the F statistic, 
 %   to its empirically obtained one. Do so for a fixed X matrix of size 50 X 4, with a column of ones, 
 %   and 3 regressors, each obtained as IID data from a normal distribution. The X matrix stays the same 
@@ -102,7 +102,7 @@ end
 %   part
 x_vals_R2_plot = -.01:.001:1;
 x_vals_zero_F_plot = -.01:.01:20;
-x_vals_one_F_plot = -.01:.01:100;
+x_vals_one_F_plot = -.01:.01:120;
 
 theo_R2 = betapdf(x_vals_R2_plot, (n_regressors)/2, (n_obs-n_regressors-1)/2); % k includes beta0
 theo_F = fpdf(x_vals_zero_F_plot, n_regressors, n_obs-n_regressors-1);
@@ -122,6 +122,7 @@ plot(x_vals_R2_plot, theo_R2, 'k-', ...
      x_vals_R2_plot, emp_R2_zero3, 'b-.')
 legend('theoretical R2', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('distribution of R^2 for \beta = (0,0,0,0)')
+xlim([-.1,1.1])
 grid()
 
 figure
@@ -131,6 +132,7 @@ plot(x_vals_zero_F_plot, theo_F, 'k-',...
      x_vals_zero_F_plot, emp_F_zero3, 'b-.')
 legend('theoretical F', '\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('distribution of F for \beta = (0,0,0,0)')
+xlim([-.1,20])
 grid()
 
 figure
@@ -139,6 +141,7 @@ plot(x_vals_R2_plot, emp_R2_one1, 'r-', ...
      x_vals_R2_plot, emp_R2_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('distribution of R^2 for \beta = (1,1,1,1)')
+xlim([-.1,1.1])
 grid()
 
 figure
@@ -147,9 +150,10 @@ plot(x_vals_one_F_plot, emp_F_one1, 'r-', ...
      x_vals_one_F_plot, emp_F_one3, 'b-')
 legend('\sigma^2 = 1', '\sigma^2 = 2', '\sigma^2 = 4', 'Location', 'northeast')
 title('distribution of F for \beta = (1,1,1,1)')
+xlim([-.1,120])
 grid()
 
-%% 2:
+%% 2: changing X matrix, null beta
 % Fix the sample size at T=100. For the number of regressors k=2,3,...,10, simulate sim=1e4 replications 
 %   of the R^2  statistic, based on a beta vector of all zeros, and X matrix obtained similar to above, 
 %   i.e., IID normal. Now you use a different X matrix for each of the 1e4 replications, and of course 

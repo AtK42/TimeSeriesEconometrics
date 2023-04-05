@@ -56,6 +56,23 @@ function MA_est = DurbinMA1959(vec_timeseries, q)
         if length(vec_timeseries) < q
             error('Please use a q smaller than the number of observations!')
         end
+        LHS_mat = zeros(q, q);
+        RHS_vec = zeros(q, 1);
+        
+
+        a_vec_len = length(a_vec);
+        for i = 1:q
+            for j = 1:q
+                if i < j
+                    LHS_mat(i,j) = ;
+                else
+                    LHS_mat(i,j) = LHS_mat(j,i);
+                end
+            end
+            RHS_vec(i) = a_vec(1:(a_vec_len-i))' * a_vec(i:a_vec_len);
+        end
+        RHS_vec = 
+        MA_est = LHS_mat \ RHS_vec;
     end
 end
 

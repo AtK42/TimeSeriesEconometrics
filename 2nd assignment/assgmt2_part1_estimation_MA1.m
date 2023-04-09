@@ -40,12 +40,6 @@
 % see listing 6.9 for code that simulates the exact and conditional MLE of
 %   an MA(1) model and compares their bias and MSE for parameter b
 
-clear
-clc
-close all
-
-% TODO: compare bias and MSE for parameter b
-
 % prep work
 T=100;
 %p = 20; % for AR estimates which are then used to estimate the MA parameters
@@ -60,12 +54,9 @@ MA1est_approxMLE_alt = zeros(length(b_true_vec), 1);
 MA1est_matlab = zeros(length(b_true_vec), 1);
 
 % simulate MA(1) process and then estimate the parameter
-rng(42); seed = rng;
-
 for i = 1:length(b_true_vec)
-    rng(seed.Seed + i);
     % simulation of MA process
-    vec_timeseries(:,i) = armasim(n_obs, 1, 0, b_true_vec(i));
+    vec_timeseries(:,i) = armasim(n_obs, 1, b_true_vec(i), 0);
 
     % estimation of MA parameter
     % % Durbin
@@ -85,12 +76,12 @@ for i = 1:length(b_true_vec)
 end
 
 %% plotting
-Durbin_dev = (MA1est_Durbin) - b_true_vec';
+Durbin_dev = (-MA1est_Durbin) - b_true_vec';
 approxMLE_dev = MA1est_approxMLE - b_true_vec';
 matlab_dev = MA1est_matlab - b_true_vec';
 dev_cat = [Durbin_dev, approxMLE_dev, matlab_dev];
 
-scatter(-.9:.1:.9, MA1est_Durbin')
+scatter(-.9:.1:.9, -MA1est_Durbin')
 xticks(-.9:.1:.9)
 xtickangle(90)
 yticks(-.9:.1:.9)

@@ -20,24 +20,16 @@
 %   do the obvious -- you ensure that when you run the codes for the q>1 
 %   case but in fact for q=1, you get exactly the same output. Be SURE you 
 %   understand what I just said :-).
- 
-% Now for your simulations: For the MA(1) model, use T=100 observations, 
-%   and a grid of true b values: -0.9, -0.8, ... 0, 0.1, up to 0.9. Use the
-%   Durbin method in conjunction with simulation of the MA(1) process (it 
-%   is easy to simulate an MA model, and I have codes in my book) to make 
-%   nice performance *graphics* (not tables). Use your "smartz and common 
-%   sense" to take it from here, as opposed to "uh, what exactly am I 
-%   supposed to do?" Read carefully and THINK, and all should be clear.
-
-%%% for MA(1) case
+%% estimation of the MA(q) parameters
 function MA_est = DurbinMA1959(vec_timeseries, q)
-% function that estimates the coefficient of a MA(q) model
+% function that takes as input an MA(q) process and then estimates 
+% the coefficient(s) of this MA(q) model
 %--------------------------------------------------------------------------
 % INPUT
-% vec_timeseries                time series of a MA process
-% q                             the order of the MA process
+% vec_timeseries                col vector, time series of an MA process
+% q                             integer, the order of the MA process
 %--------------------------------------------------------------------------
-% Output
+% OUTPUT
 % MA_est                        the estimated coefficient(s);
 %                               real-valued for q = 1
 %                               in R^q for q > 1
@@ -47,41 +39,92 @@ function MA_est = DurbinMA1959(vec_timeseries, q)
         q = 1;
     end
 
+    % check that vec_timeseries is a col vec and get its length
+    dim = size(vec_timeseries);
+    if dim(1) == 1
+        vec_timeseries = vec_timeseries';
+    end
+    %p = 20; % assuming an AR(p) process for the estimation of the MA params
+    p = round(sqrt(length(vec_timeseries)));
+    T = length(vec_timeseries);%-p;
+
+    % estimate the AR parameters
+    %Z_design_mat = zeros(T, p);
+    %for i = 1:p
+    %    Z_design_mat(:,i) = vec_timeseries(p+(1-i):T+p-i); % eq (6.31) in the book
+    %end
+    %a_vec = (Z_design_mat' * Z_design_mat) \ Z_design_mat' * vec_timeseries(p+1:end); % check eq (6.32) and take p = T, see also program listing 6.3
+    %a_vec = [1; a_vec]; % set a_0 = 1 as suggested in Durbin's paper
+    %a_vec_len = length(a_vec); % = k
+
+    [~, a_vec] = yw(vec_timeseries, p);
+    a_vec = [1; a_vec];
+
+    % estimation for MA(1) case
     if q == 1
-        a_vec_len = length(a_vec);
-        num = a_vec(1:(a_vec_len-1))' * a_vec(2:a_vec_len);
+        %a_vec_len = length(a_vec);
+        num = a_vec(1:(end-1))' * a_vec(2:end);
         denom = sum(a_vec.^2);
-        MA_est = - num / denom; 
+        MA_est = - num / denom; % eq 7 in Durbin(1959)
+    
+    % estimation for MA(q) case
     else
-        if length(vec_timeseries) < q
-            error('Please use a q smaller than the number of observations!')
+        % error checking
+        if T < q
+            error('Please use an MA order q smaller than the number of observations!')
         end
         LHS_mat = zeros(q, q);
         RHS_vec = zeros(q, 1);
         
-
-        a_vec_len = length(a_vec);
         for i = 1:q
             for j = 1:q
-                if i < j
-                    LHS_mat(i,j) = ;
+                if i <= j
+                    LHS_mat(i,j) = a_vec(1:(end-j))' * a_vec(j:end); % eq 15 in Durbin(1959)
                 else
                     LHS_mat(i,j) = LHS_mat(j,i);
                 end
             end
-            RHS_vec(i) = a_vec(1:(a_vec_len-i))' * a_vec(i:a_vec_len);
+            RHS_vec(i) = a_vec(1:(end-i))' * a_vec(i:end);
         end
-        RHS_vec = 
-        MA_est = LHS_mat \ RHS_vec;
+        MA_est = LHS_mat \ (-1 * RHS_vec);
     end
 end
 
+% code for computing (6.57) in the book (program listing 6.10, p. 306)
+% T=length(y);
+% p=round(sqrt(T));
+% z=y(p+1:end);
+% zl=length(z);
+% Z=[];
+% for i=1:p
+%     Z=[Z y(p-i+1:p-i+zl)];
+% end, a=inv(Z'*Z)*Z'*z;
+% b=a(1)
 
-
-
-
-
-
+% % function that computes the YW and least square estimator for an AR(p)
+% %   model (see p. 292 in the book)
+% % -------------------------------------------------------------------------
+% function [ayw,aols]=yw(y,p)
+% y=reshape(y,length(y),1); r=localsacf(y,p);
+% v=[1; r(1:end-1)]; R=toeplitz(v,v); ayw=inv(R)*r;
+% if nargout>1 % the o.l.s. estimator
+%     z=y(p+1:end); zl=length(z); Z=[];
+%     for i=1:p
+%         Z=[Z y(p-i+1:p-i+zl)];
+%     end
+%     R=(Z'*Z) \ Z'; aols=R*z;
+% end
+% end
+% 
+% function acf=localsacf(x,imax) % computes the estimates of gamma_i
+% T=length(x); a=zeros(imax,1);
+% for i=1:imax
+%     a(i)= sum(x(i+1:T) .* x(1:T-i) );
+% end
+% acf=a./sum(x.^2);
+% end
+% 
+% 
 
 
 

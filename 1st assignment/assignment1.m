@@ -205,3 +205,153 @@ xlabel('number of regressors')
 %   tables of the accuracy of beta and ar(1) parameter a. Now, you do this also for a grid of a-values, 
 %   namely 0.0, 0.2, 0.4, 0.6, 0.8, and 0.99. Notice you do NOT need to compare to the exact MLE -- you do 
 %   not do the exact MLE, but rather only the super-fast iterative method based on ols and gls.
+n_obs_vec = [20, 50];
+n_sim = 1e4;
+conv_criteria = 1e-5;
+n_regressors = 4;
+beta_initial = ones(1, n_regressors + 1)'; % arbitrarily chosen
+s2 = 1;
+
+% initialize variables
+a_mat = zeros(n_sim, size(n_obs_vec, 2)); % one row per iter and one col per samp size
+beta_arr = zeros(n_sim, n_regressors+1, size(n_obs_vec, 2)); % one row per iter, one col per beta_i, one mat per samp size
+
+% set the true a parameter (let program run for each of the a)
+a_true = 0; %[0, .2, .4, .6, .8, .99];
+
+for t = n_obs_vec
+    % define selection matrices (see book page 196, middle)
+    D_T = [zeros(t, 1), eye(t)];
+    D_Tminus1 = [eye(t), zeros(t, 1)];
+
+    % define X matrix
+    X_mat = [ones(t+1, 1), normrnd(0, 1, [t+1, n_regressors])];
+
+    for i = 1:n_sim
+        % initialize epsilon vec
+        eps = zeros(t+1, 1);
+
+        % set epsilon_0 (see book page 223, bottom)
+        if abs(a_true) < 1
+            eps(1) = normrnd(0, s2/(1-a_true^2));
+        elseif a_true == 1
+            eps(1) = randn;
+        end
+
+        % simulate AR(1)
+        for j = 2:t
+            eps(j) = a_true * eps(j-1) + normrnd(0, sqrt(s2), 1);
+        end
+
+        % calculate true Y vector
+        Y_vec = X_mat * beta_initial + eps(t);
+
+        % iterarte through algo on p. 255
+        % % get initial values
+        b_hat = (X_mat' * X_mat) \ X_mat' * Y_vec;
+        eps_hat = Y_vec - X_mat * b_hat;
+
+        % % calc a hat and sigma squared hat as given in the book p. 196
+        a_hat = (Y_vec' * D_Tminus1' * D_T * Y_vec) / (Y_vec' * (D_Tminus1' * D_Tminus1) * Y_vec);
+        %a_hat = eps_hat(1:end-1) \ eps_hat(2:end);
+        %s2_hat = sum( (Y(2:end) - a_hat * Y_vec(1:end-1) ).^2 ) / (t-1);
+        
+        % run the estimation until convergence
+        b_hat_old = inf;
+        a_hat_old = inf;
+        Y_hat = Y_vec;
+        fail_switch = 0;
+        while max(abs(b_hat - b_hat_old), abs(a_hat - a_hat_old)) > conv_criteria
+            % % calc inv(Sigma) as given in the book p. 198
+            b = 1 + a_hat^2;
+            Sigma_inv = diag(b * ones(1, t+1)) + diag(-a_hat * ones(1, t), 1) + diag(-a_hat * ones(1, t), -1);
+            Sigma_inv(1,1) = 1;
+            Sigma_inv(end, end) = 1;
+            
+            % % calculate beta hat
+            b_hat_old = b_hat;
+            b_hat = (X_mat' * Sigma_inv * X_mat) \ X_mat' * Sigma_inv * Y_vec;
+            
+            % % get residuals
+            eps_hat_old = eps_hat;
+            eps_hat = Y_vec - X_mat * b_hat;
+
+            % % calculate new a
+            Y_hat = X_mat * b_hat;
+            a_hat_old = a_hat;
+            a_hat = (Y_hat' * D_Tminus1' * D_T * Y_hat) / (Y_hat' * (D_Tminus1' * D_Tminus1) * Y_hat);
+            %a_hat = eps_hat(1:end-1) \ eps_hat(2:end);
+
+            fail_switch = fail_switch + 1;
+            if fail_switch > 1e6
+                disp("automatic break from while-loop, no convergence after 1e6 iterations")
+                a_mat(i, n_obs_vec == t) = a_hat;
+                beta_arr(i, :, n_obs_vec == t) = b_hat;
+                break
+            end
+        end
+        a_mat(i, n_obs_vec == t) = a_hat;
+        beta_arr(i, :, n_obs_vec == t) = b_hat;
+    end
+end
+
+%% plotting
+
+
+%% 3: Alex
+%Specify samplesize and a
+samplesize = 50;
+a = 0.99;
+true_beta = [1 2 3 4 5]';
+%Run everything twice, once for T=20 and once for T=50
+    one_Vector = ones(samplesize + 1, 1);
+    X_cols = normrnd(0, 1, samplesize + 1, 4);
+    X = [one_Vector X_cols];
+    a_vector = [];
+    beta_matrix =[];
+    %Run the 1e4 iterations
+    for i = 1:1e4
+        epsilonzero = normrnd(0,1/(1-a^2));
+        epsilon = [];
+        epsilon(1) = epsilonzero;
+        %Simulate the errors
+        for j = 2:samplesize + 1
+            epsilon(j) = a*epsilon(j-1) + randn;
+        end
+        Y = X*true_beta + epsilon';
+        i
+        %Iterate through the algorithm from page 225
+        sigma = [];
+        beta_estimate = X\Y;
+        epsilon_estimate = Y - X*beta_estimate;  
+        a_estimate = epsilon_estimate(1:samplesize)\epsilon_estimate(2:samplesize + 1);
+        olda = inf;
+        beta_estimate_old = inf;
+        while max([abs(a_estimate - olda) abs(beta_estimate' -beta_estimate_old')]) > 1e-5 
+            %Now we need to create the sigma matrix
+            for row = 1:(samplesize + 1)
+                for col = 1:(samplesize + 1)
+                    sigma(row, col) = (a_estimate^(abs(row-col)))/(1 - a_estimate.^2);
+                end
+            end
+            beta_estimate_old = beta_estimate;
+            beta_estimate = inv(X'*inv(sigma)*X)*X'*inv(sigma)*Y;
+            epsilon_estimate = Y - X*beta_estimate;
+            olda = a_estimate;
+            a_estimate = epsilon_estimate(1:samplesize)\epsilon_estimate(2:samplesize+1);
+        end
+        a_vector(i, 1) = a_estimate;
+        beta_matrix(i, :) = beta_estimate;
+    end
+    figure;
+    boxplot(a_vector - a)
+     yline(0)
+     str1 = ['Errors of a-estimates with true a = '  num2str(a) ' and samplesize ' num2str(samplesize)]
+    title(str1)
+    figure;
+    boxplot(beta_matrix - true_beta');
+    hold on;
+    yline(0)
+    str2 = ['Errors of the beta-estimate with true a = ' num2str(a) ' and samplesize ' num2str(samplesize)]
+    title(str2)
+    mean(a_vector-a)

@@ -67,7 +67,7 @@ function MA_est = DurbinMA1959(vec_timeseries, q)
         denom = sum(a_vec.^2);
         MA_est = - num / denom; % eq 7 in Durbin(1959)
     
-    % estimation for MA(q) case
+    % estimation for MA(q) case (checked that q > 1 case gives same results as q = 1 case calculation-wise)
     else
         % error checking
         if T < q
@@ -79,14 +79,14 @@ function MA_est = DurbinMA1959(vec_timeseries, q)
         for i = 1:q
             for j = 1:q
                 if i <= j
-                    LHS_mat(i,j) = a_vec(1:(end-j))' * a_vec(j:end); % eq 15 in Durbin(1959)
+                    LHS_mat(i,j) = a_vec(1:(end-j+1))' * a_vec(j:end); % eq 15 in Durbin(1959)
                 else
                     LHS_mat(i,j) = LHS_mat(j,i);
                 end
             end
-            RHS_vec(i) = a_vec(1:(end-i))' * a_vec(i:end);
+            RHS_vec(i) = a_vec(1:(end-i))' * a_vec(i+1:end);
         end
-        MA_est = LHS_mat \ (-1 * RHS_vec);
+        MA_est = LHS_mat \ (-RHS_vec);
     end
 end
 

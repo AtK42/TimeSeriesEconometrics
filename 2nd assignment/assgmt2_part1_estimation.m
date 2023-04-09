@@ -75,7 +75,51 @@ for i = 1:length(b_true_vec)
     disp(['done for b = ' num2str(b_true_vec(i))])
 end
 
+%% plotting
+Durbin_dev = (-MA1est_Durbin) - b_true_vec';
+approxMLE_dev = MA1est_approxMLE - b_true_vec';
+matlab_dev = MA1est_matlab - b_true_vec';
+dev_cat = [Durbin_dev, approxMLE_dev, matlab_dev];
+
+scatter(-.9:.1:.9, -MA1est_Durbin')
+xticks(-.9:.1:.9)
+xtickangle(90)
+yticks(-.9:.1:.9)
+hold on
+scatter(-.9:.1:.9, MA1est_approxMLE', 'filled')
+scatter(-.9:.1:.9, MA1est_matlab', 'green', 'd')
+
+
+horz = zeros(length(b_true_vec), 1000);
+for i = 1:length(b_true_vec)
+    horz(i,:) = linspace(b_true_vec(i)-.05, b_true_vec(i)+.05, 1000);
+end
+plot(horz(1,:),ones(length(horz(1,:)),1) * b_true_vec(1), 'black')
+ylim([-1 1])
+xlim([-1 1])
+xlabel('true values')
+ylabel('estimated values')
+title(["True vs. estimated values of the MA(1)","parameter for different estimation methods"])
+xticks(-.9:.1:.9)
+hold on
+for i = 2:length(b_true_vec)
+    plot(horz(i,:), ones(length(horz(i,:)), 1) * b_true_vec(i), 'black')
+end
+%legend('Durbin', 'approx MLE', 'Matlab', 'true value', ...
+%    'Location','northwest')
+legend('Durbin', 'approx MLE', 'Matlab', '','','','','','','','','','','','','','','','','','','', ...
+    'Location','northwest')
 
 
 
+% cats = categorical({'Durbin', 'MLE', 'Matlab'});
+% tiledlayout(4,5)
+% for i = 1:length(b_true_vec)
+%     nexttile
+%     scatter(cats, MA1est_cat(i,:), 25, 'filled')
+%     ylim([-1 1])
+%     yline(b_true_vec(i))
+% end
 
+% scatter(cats, MA1est_cat, 'filled')
+% legend

@@ -29,11 +29,11 @@ MA2est_Durbin_100 = DurbinMA1959(vec_timeseries_100, 2);
 MA2est_Durbin_1000 = DurbinMA1959(vec_timeseries_1000, 2);
 
 % %% approximate MLE
-MA2_temp = ma1(vec_timeseries_100, 0); % 0 for approx MLE
+[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_100, [], 0, 2, 0); % last 0 for approx MLE
 MA2est_approxMLE_100 = MA2_temp;
 
-MA2_temp = ma1(vec_timeseries_1000, 0);
-MA2est_approxMLE_1000 = MA2_temp(1);
+[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_1000, [], 0, 2, 0); % last 0 for approx MLE
+MA2est_approxMLE_1000 = MA2_temp;
 
 % %% bulilt-in MATLAB function
 MA2_temp = armax(vec_timeseries_100, [0, 2]);

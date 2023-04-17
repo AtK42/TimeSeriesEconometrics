@@ -27,7 +27,7 @@ clc
 close all
 
 % prep work
-b_true = -.5; % freely assumed
+b_true = -.2; % freely assumed
 T=100;
 n_obs = T;% + p;
 B = 400; % check if can be smaller or should be larger for reliable results
@@ -43,7 +43,7 @@ boot_MA1est_matlab = zeros(B, 1);
 
 % simulate MA(1) process and then estimate the parameter
 % % for reproducibility
-rng(42); seed = rng;
+%rng(112); seed = rng;
 
 % % simulate MA(1) process with true parameter
 timeseries = armasim(n_obs, 1, 0, b_true);
@@ -59,7 +59,7 @@ MA1_temp = armax(timeseries, [0, 1]);
 MA1est_matlab = MA1_temp.c(2:end);
 
 for i = 1:B
-    rng(seed.Seed + i);
+    %rng(seed.Seed + i);
     % simulation of MA process with ESTIMATED b
     vec_timeseries_Durbin(:,i) = armasim(n_obs, 1, 0, MA1est_Durbin);
     vec_timeseries_approxMLE(:,i) = armasim(n_obs, 1, 0, MA1est_approxMLE);
@@ -71,6 +71,11 @@ for i = 1:B
     boot_MA1est_approxMLE(i) = MA1_temp(1);
     MA1_temp = armax(vec_timeseries_matlab(:,i), [0, 1]);
     boot_MA1est_matlab(i) = MA1_temp.c(2:end);
+
+    if mod(i, 50) == 0
+        clc
+        disp([num2str(i), ' out of ', num2str(B), ' replications done.']);
+    end
 end
 
 % calculate CI

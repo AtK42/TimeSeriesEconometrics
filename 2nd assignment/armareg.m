@@ -23,6 +23,8 @@ elseif (p==1) & (q==1)
     bound.hi= [ ones(1,ncol) 1 1 2*std(y) ]';
     bound.which=[zeros(1,ncol) 1 1 1 ]';
 else
+    bound.lo=-Inf * ones(1,length(initvec)); % ?
+    bound.hi=Inf * ones(1,length(initvec)); % ?
     bound.which=zeros(1,length(initvec)); % no bounds at all.
 end
 
@@ -33,24 +35,26 @@ opt=optimset('Display','None','TolX',mletol,'MaxIter',MaxIter,...
 fminunc(@arma_,einschrk(initvec,bound),opt,y,X,p,q,exact,bound);
 loglik=-negloglik; varcov=inv(hess);
 [param,varcov]=einschrk(pout,bound,varcov);
-if nargout>1 % get varcov and standard errors
-    if 1==1 % direct Hessian calc instead of bfgs output
-        H = -hessian(@arma_,param,y,X,p,q,exact); varcov=inv(H);
-    end
-    stderr=sqrt(diag(varcov));
-end
-if nargout>2 % get residuals
-    littlesig=param(end);
-    if exact==1
-        if isempty(X), z=y; else beta = param(1:ncol); z=y-X*beta; end
-        a=param(ncol+1:ncol+p); b=param(ncol+p+1:end-1);
-        Sigma = acvf(a,b,nrow); SigInv=inv(Sigma);
-        [V,D]=eig(0.5*(SigInv+SigInv')); W=sqrt(D); SigInvhalf = V*W*V';
-        resid = SigInvhalf*z/littlesig;
-    else
-        [garb,uvec]=arma_(param,y,X,p,q,0); resid=uvec/littlesig;
-    end
-end
+
+stderr = NaN; resid = NaN;
+% if nargout>1 % get varcov and standard errors
+%     if 1==1 % direct Hessian calc instead of bfgs output
+%         H = -hessian(@arma_,param,y,X,p,q,exact); varcov=inv(H);
+%     end
+%     stderr=sqrt(diag(varcov));
+% end
+% if nargout>2 % get residuals
+%     littlesig=param(end);
+%     if exact==1
+%         if isempty(X), z=y; else beta = param(1:ncol); z=y-X*beta; end
+%         a=param(ncol+1:ncol+p); b=param(ncol+p+1:end-1);
+%         Sigma = acvf(a,b,nrow); SigInv=inv(Sigma);
+%         [V,D]=eig(0.5*(SigInv+SigInv')); W=sqrt(D); SigInvhalf = V*W*V';
+%         resid = SigInvhalf*z/littlesig;
+%     else
+%         [garb,uvec]=arma_(param,y,X,p,q,0); resid=uvec/littlesig;
+%     end
+% end
 
 
 function [loglik,uvec]=arma_(param,y,X,p,q,exact,bound)

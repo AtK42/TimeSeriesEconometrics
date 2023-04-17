@@ -58,7 +58,7 @@ function MA_est = DurbinMA1959(vec_timeseries, q)
     %a_vec_len = length(a_vec); % = k
 
     [~, a_vec] = yw(vec_timeseries, p);
-    a_vec = [1; a_vec];
+    a_vec = [1; -a_vec];
 
     % estimation for MA(1) case
     if q == 1
@@ -86,7 +86,7 @@ function MA_est = DurbinMA1959(vec_timeseries, q)
             end
             RHS_vec(i) = a_vec(1:(end-i))' * a_vec(i+1:end);
         end
-        MA_est = LHS_mat \ (-RHS_vec);
+        MA_est = LHS_mat \ -RHS_vec;
     end
 end
 

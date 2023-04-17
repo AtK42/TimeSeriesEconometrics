@@ -45,49 +45,70 @@ T=100;
 %p = 20; % for AR estimates which are then used to estimate the MA parameters
 n_obs = T;% + p;
 b_true_vec = (-.9:.1:.9);
+n_reps = 100;
 
 % initialize variables
 vec_timeseries = zeros(n_obs, length(b_true_vec));
-MA1est_Durbin = zeros(length(b_true_vec), 1);
-MA1est_approxMLE = zeros(length(b_true_vec), 1);
-MA1est_approxMLE_alt = zeros(length(b_true_vec), 1);
-MA1est_matlab = zeros(length(b_true_vec), 1);
+MA1est_Durbin = zeros(length(b_true_vec), n_reps);
+MA1est_approxMLE = zeros(length(b_true_vec), n_reps);
+MA1est_approxMLE_alt = zeros(length(b_true_vec), n_reps);
+MA1est_matlab = zeros(length(b_true_vec), n_reps);
+time_Durbin = zeros(length(b_true_vec), 1);
+time_approxMLE = zeros(length(b_true_vec), 1);
+time_matlab = zeros(length(b_true_vec), 1);
 
+total_start = tic;
 % simulate MA(1) process and then estimate the parameter
 for i = 1:length(b_true_vec)
     % simulation of MA process
     vec_timeseries(:,i) = armasim(n_obs, 1, b_true_vec(i), 0);
+    
+    Durbin_start = tic;
+    for r = 1:n_reps
+        % estimation of MA parameter
+        % % Durbin
+        MA1est_Durbin(i, r) = DurbinMA1959(vec_timeseries(:,i), 1);
+    end
+    time_Durbin(i) = toc(Durbin_start);
 
-    % estimation of MA parameter
-    % % Durbin
-    MA1est_Durbin(i) = DurbinMA1959(vec_timeseries(:,i), 1);
+    approxMLE_start = tic;
+    for r = 1:n_reps
+        % % approximate MLE
+        MA1_temp = ma1(vec_timeseries(:,i), 0); % 0 for approx MLE
+        MA1est_approxMLE(i, r) = MA1_temp(1);
+        MA1_temp = armaols(vec_timeseries(:,i),0,1);
+        MA1est_approxMLE_alt(i, r) = MA1_temp(1);
+    end
+    time_approxMLE(i) = toc(approxMLE_start);
 
-    % % approximate MLE
-    MA1_temp = ma1(vec_timeseries(:,i), 0); % 0 for approx MLE
-    MA1est_approxMLE(i) = MA1_temp(1);
-    MA1_temp = armaols(vec_timeseries(:,i),0,1);
-    MA1est_approxMLE_alt(i) = MA1_temp(1);
-
-    % % bulilt-in MATLAB function
-    MA1_temp = armax(vec_timeseries(:,i), [0, 1]);
-    MA1est_matlab(i) = MA1_temp.c(2:end);
-
+    matlab_start = tic;
+    for r = 1:n_reps
+        % % bulilt-in MATLAB function
+        MA1_temp = armax(vec_timeseries(:,i), [0, 1]);
+        MA1est_matlab(i, r) = MA1_temp.c(2:end);
+    end
+    time_matlab(i) = toc(matlab_start);
     disp(['done for b = ' num2str(b_true_vec(i))])
 end
+time_total = toc(total_start);
+
 
 %% plotting
-Durbin_dev = (-MA1est_Durbin) - b_true_vec';
-approxMLE_dev = MA1est_approxMLE - b_true_vec';
-matlab_dev = MA1est_matlab - b_true_vec';
-dev_cat = [Durbin_dev, approxMLE_dev, matlab_dev];
 
-scatter(-.9:.1:.9, -MA1est_Durbin')
+% Durbin_dev = (MA1est_Durbin) - b_true_vec';
+% approxMLE_dev = MA1est_approxMLE - b_true_vec';
+% matlab_dev = MA1est_matlab - b_true_vec';
+% dev_cat = [Durbin_dev, approxMLE_dev, matlab_dev];
+
+
+figure('DefaultAxesFontSize', 14)
+scatter(-.9:.1:.9, mean(MA1est_Durbin,2)')
 xticks(-.9:.1:.9)
 xtickangle(90)
 yticks(-.9:.1:.9)
 hold on
-scatter(-.9:.1:.9, MA1est_approxMLE', 'filled')
-scatter(-.9:.1:.9, MA1est_matlab', 'green', 'd')
+scatter(-.9:.1:.9, mean(MA1est_approxMLE,2)', 'filled')
+scatter(-.9:.1:.9, mean(MA1est_matlab,2)', 'green', 'd')
 
 
 horz = zeros(length(b_true_vec), 1000);
@@ -108,7 +129,28 @@ legend('Durbin', 'approx MLE', 'Matlab', '','','','','','','','','','','','','',
     'Location','northwest')
 
 
+% plot bias
+figure('DefaultAxesFontSize', 18)
+plot(b_true_vec, mean(MA1est_Durbin,2)' - b_true_vec, 'r-', ...
+     b_true_vec, mean(MA1est_approxMLE,2)' - b_true_vec, 'g:', ...
+     b_true_vec, mean(MA1est_matlab,2)' - b_true_vec, 'b--', ...
+     'linewidth',2)
+legend('Durbin','approx MLE', 'Matlab', 'Location', 'north');
+title('Bias');
 
+
+% plot MSE
+figure('DefaultAxesFontSize', 18)
+true = kron(ones(n_reps, 1), b_true_vec);
+plot(b_true_vec, mean((MA1est_Durbin' - true).^2,1), 'r-', ...
+     b_true_vec, mean((MA1est_approxMLE' - true).^2,1), 'g:', ...
+     b_true_vec, mean((MA1est_matlab' - true).^2,1), 'b--', ...
+     'linewidth',2)
+legend('Durbin','approx MLE', 'Matlab', 'Location', 'north');
+title('MSE');
+
+
+%%
 % cats = categorical({'Durbin', 'MLE', 'Matlab'});
 % tiledlayout(4,5)
 % for i = 1:length(b_true_vec)

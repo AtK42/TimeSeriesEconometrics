@@ -28,9 +28,9 @@ close all
 
 % prep work
 b_true = -.2; % freely assumed
-T=100;
+T=1e4;
 n_obs = T;% + p;
-B = 400; % check if can be smaller or should be larger for reliable results
+B = 4*1e3; % check if can be smaller or should be larger for reliable results
 alpha = .1;
 
 % initialize variables
@@ -43,7 +43,7 @@ boot_MA1est_matlab = zeros(B, 1);
 
 % simulate MA(1) process and then estimate the parameter
 % % for reproducibility
-%rng(112); seed = rng;
+rng(112); seed = rng;
 
 % % simulate MA(1) process with true parameter
 timeseries = armasim(n_obs, 1, 0, b_true);
@@ -74,11 +74,23 @@ for i = 1:B
 
     if mod(i, 50) == 0
         clc
-        disp([num2str(i), ' out of ', num2str(B), ' replications done.']);
+        disp([num2str(i), ' out of ', num2str(B), ' replications done (', num2str(round((i/B)*100, 2)), '%).']);
     end
 end
+clc
+disp('All done, enjoy!')
 
 % calculate CI
 ci_Durbin = quantile(boot_MA1est_Durbin, [alpha/2 1-alpha/2]);
 ci_approxMLE = quantile(boot_MA1est_approxMLE, [alpha/2 1-alpha/2]);
 ci_matlab = quantile(boot_MA1est_matlab, [alpha/2 1-alpha/2]);
+
+%% coverage
+% % check which estimates are within the CI
+cov_Durbin_vec = boot_MA1est_Durbin >= ci_Durbin(1) & boot_MA1est_Durbin <= ci_Durbin(2);
+cov_approxMLE_vec = boot_MA1est_approxMLE >= ci_Durbin(1) & boot_MA1est_approxMLE <= ci_Durbin(2);
+cov_matlab_vec = boot_MA1est_matlab >= ci_Durbin(1) & boot_MA1est_matlab <= ci_Durbin(2);
+% % get coverage
+cov_Durbin = mean(cov_Durbin_vec); disp(cov_Durbin);
+cov_approxMLE = mean(cov_approxMLE_vec); disp(cov_approxMLE);
+cov_matlab = mean(cov_matlab_vec); disp(cov_matlab);

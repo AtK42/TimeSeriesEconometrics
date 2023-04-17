@@ -11,10 +11,8 @@ clear
 clc
 close all
 
-% TODO: compare bias and MSE for parameter b
-
 q = 2;
-b_true = [-.5, -.24];
+b_true = [-0.5 -0.24];
 T_vec = [100 1000];
 
 % simulate MA(2) process and then estimate the parameters
@@ -29,11 +27,16 @@ MA2est_Durbin_100 = DurbinMA1959(vec_timeseries_100, 2);
 MA2est_Durbin_1000 = DurbinMA1959(vec_timeseries_1000, 2);
 
 % %% approximate MLE
-[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_100, [], 0, 2, 0); % last 0 for approx MLE
-MA2est_approxMLE_100 = MA2_temp;
+%[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_100, [], 0, 2, 0); % last 0 for approx MLE
+%MA2est_approxMLE_100 = MA2_temp;
 
-[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_1000, [], 0, 2, 0); % last 0 for approx MLE
-MA2est_approxMLE_1000 = MA2_temp;
+%[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_1000, [], 0, 2, 0); % last 0 for approx MLE
+%MA2est_approxMLE_1000 = MA2_temp;
+
+MA2temp = maq(vec_timeseries_100, 1, 2);
+MA2est_approxMLE_100 = MA2temp(1:2);
+MA2temp = maq(vec_timeseries_1000, 1, 2);
+MA2est_approxMLE_1000 = MA2temp(1:2);
 
 % %% bulilt-in MATLAB function
 MA2_temp = armax(vec_timeseries_100, [0, 2]);
@@ -42,56 +45,76 @@ MA2est_matlab_100 = MA2_temp.c(2:end);
 MA2_temp = armax(vec_timeseries_1000, [0, 2]);
 MA2est_matlab_1000 = MA2_temp.c(2:end);
 
-
-
 %% plotting
+xlim_ = [(b_true(1) - .1), (b_true(2) + .1)];
+ylim_ = [min([b_true, MA2est_Durbin_100', MA2est_approxMLE_100', MA2est_matlab_100])-.1, ...
+        max([b_true, MA2est_Durbin_100', MA2est_approxMLE_100', MA2est_matlab_100])+.1];
 
+horz = zeros(length(b_true), 1000);
+horz(1,:) = linspace(b_true(1)-.02, b_true(1)+.02, 1000);
+horz(2,:) = linspace(b_true(2)-.02, b_true(2)+.02, 1000);
+
+% T = 100
 figure('DefaultAxesFontSize', 14)
-scatter(-.9:.1:.9, mean(MA1est_Durbin,2)')
-xticks(-.9:.1:.9)
-xtickangle(90)
-yticks(-.9:.1:.9)
+scatter(b_true, [mean(MA2est_Durbin_100(1),2)' mean(MA2est_Durbin_100(2),2)])
 hold on
-scatter(-.9:.1:.9, mean(MA1est_approxMLE,2)', 'filled')
-scatter(-.9:.1:.9, mean(MA1est_matlab,2)', 'green', 'd')
+scatter(b_true, [mean(MA2est_approxMLE_100(1),2)' mean(MA2est_approxMLE_100(2),2)'], 'filled')
+scatter(b_true, [mean(MA2est_matlab_100(1),2)' mean(MA2est_matlab_100(2),2)'], 'green', 'd')
+plot(horz(1,:),ones(length(horz(1,:)),1) * b_true(1), 'black')
+plot(horz(2,:),ones(length(horz(2,:)),1) * b_true(2), 'black')
 
+xlim(xlim_); ylim(ylim_)
+xlabel('true values'); ylabel('estimated values')
+legend('Durbin', 'approx MLE', 'Matlab', 'true value', '', 'Location', 'south');
+%legend('boxoff')
+title(["True vs. estimated values of the MA(2)","parameter for T = 100"])
 
-horz = zeros(length(b_true_vec), 1000);
-for i = 1:length(b_true_vec)
-    horz(i,:) = linspace(b_true_vec(i)-.05, b_true_vec(i)+.05, 1000);
-end
-plot(horz(1,:),ones(length(horz(1,:)),1) * b_true_vec(1), 'black')
-ylim([-1 1]);xlim([-1 1]);xlabel('true values');ylabel('estimated values')
-title(["True vs. estimated values of the MA(1)","parameter for different estimation methods"])
-xticks(-.9:.1:.9)
+%%
+% T = 1000
+figure('DefaultAxesFontSize', 14)
+scatter(b_true, [mean(MA2est_Durbin_1000(1),2)' mean(MA2est_Durbin_1000(2),2)])
 hold on
-for i = 2:length(b_true_vec)
-    plot(horz(i,:), ones(length(horz(i,:)), 1) * b_true_vec(i), 'black')
-end
-%legend('Durbin', 'approx MLE', 'Matlab', 'true value', ...
-%    'Location','northwest')
-legend('Durbin', 'approx MLE', 'Matlab', '','','','','','','','','','','','','','','','','','','', ...
-    'Location','northwest')
+scatter(b_true, [mean(MA2est_approxMLE_1000(1),2)' mean(MA2est_approxMLE_1000(2),2)'], 'filled')
+scatter(b_true, [mean(MA2est_matlab_1000(1),2)' mean(MA2est_matlab_1000(2),2)'], 'green', 'd')
+plot(horz(1,:),ones(length(horz(1,:)),1) * b_true(1), 'black')
+plot(horz(2,:),ones(length(horz(2,:)),1) * b_true(2), 'black')
 
+xlim(xlim_); ylim(ylim_)
+xlabel('true values'); ylabel('estimated values')
+legend('Durbin', 'approx MLE', 'Matlab', 'true value', '', 'Location', 'south');
+%legend('boxoff')
+title(["True vs. estimated values of the MA(2)","parameter for T = 1000"])
 
-% plot bias
-figure('DefaultAxesFontSize', 18)
-plot(b_true_vec, mean(MA1est_Durbin,2)' - b_true_vec, 'r-', ...
-     b_true_vec, mean(MA1est_approxMLE,2)' - b_true_vec, 'g:', ...
-     b_true_vec, mean(MA1est_matlab,2)' - b_true_vec, 'b--', ...
-     'linewidth',2)
-legend('Durbin','approx MLE', 'Matlab', 'Location', 'north');
-title('Bias');
+%%
+% bias
+biasb1_100_Durbin = mean(MA2est_Durbin_100(1),2)' - b_true(1);
+biasb1_100_approxMLE = mean(MA2est_approxMLE_100(1),2)' - b_true(1);
+biasb1_100_matlab = mean(MA2est_matlab_100(1),2)' - b_true(1);
+biasb2_100_Durbin = mean(MA2est_Durbin_100(2),2)' - b_true(2);
+biasb2_100_approxMLE = mean(MA2est_approxMLE_100(2),2)' - b_true(2);
+biasb2_100_matlab = mean(MA2est_matlab_100(2),2)' - b_true(2);
 
+biasb1_1000_Durbin = mean(MA2est_Durbin_1000(1),2)' - b_true(1);
+biasb1_1000_approxMLE = mean(MA2est_approxMLE_1000(1),2)' - b_true(1);
+biasb1_1000_matlab = mean(MA2est_matlab_1000(1),2)' - b_true(1);
+biasb2_1000_Durbin = mean(MA2est_Durbin_1000(2),2)' - b_true(2);
+biasb2_1000_approxMLE = mean(MA2est_approxMLE_1000(2),2)' - b_true(2);
+biasb2_1000_matlab = mean(MA2est_matlab_1000(2),2)' - b_true(2);
 
-% plot MSE
-figure('DefaultAxesFontSize', 18)
-true = kron(ones(n_reps, 1), b_true_vec);
-plot(b_true_vec, mean((MA1est_Durbin' - true).^2,1), 'r-', ...
-     b_true_vec, mean((MA1est_approxMLE' - true).^2,1), 'g:', ...
-     b_true_vec, mean((MA1est_matlab' - true).^2,1), 'b--', ...
-     'linewidth',2)
-legend('Durbin','approx MLE', 'Matlab', 'Location', 'north');
-title('MSE');
+% MSE
+b1_true_100 = b_true(1) * ones(100, 1); b2_true_100 = b_true(2) * ones(100, 1);
+b1_true_1000 = b_true(1) * ones(1000, 1); b2_true_1000 = b_true(2) * ones(1000, 1);
 
+MSEb1_100_Durbin = mean( (MA2est_100_Durbin(1) - b1_true_100).^2, 1);
+MSEb1_100_approxMLE = mean( (MA2est_100_approxMLE(1) - b1_true_100).^2, 1);
+MSEb1_100_matlab = mean( (MA2est_100_matlab(1) - b1_true_100).^2, 1);
+MSEb2_100_Durbin = mean( (MA2est_100_Durbin(2) - b2_true_100).^2, 1);
+MSEb2_100_approxMLE = mean( (MA2est_100_approxMLE(2) - b2_true_100).^2, 1);
+MSEb2_100_matlab = mean( (MA2est_100_matlab(2) - b2_true_100).^2, 1);
 
+MSEb1_1000_Durbin = mean( (MA2est_1000_Durbin(1) - b1_true_1000).^2, 1);
+MSEb1_1000_approxMLE = mean( (MA2est_1000_approxMLE(1) - b1_true_1000).^2, 1);
+MSEb1_1000_matlab = mean( (MA2est_1000_matlab(1) - b1_true_1000).^2, 1);
+MSEb2_1000_Durbin = mean( (MA2est_1000_Durbin(2) - b2_true_1000).^2, 1);
+MSEb2_1000_approxMLE = mean( (MA2est_1000_approxMLE(2) - b2_true_1000).^2, 1);
+MSEb2_1000_matlab = mean( (MA2est_1000_matlab(2) - b2_true_1000).^2, 1);

@@ -14,7 +14,7 @@ close all
 q = 2;
 b_true = [-0.5 -0.24];
 T_vec = [100 1000];
-n_reps = 50;
+n_reps = 500;
 
 vec_timeseries_100 = zeros(T_vec(1), n_reps);
 vec_timeseries_1000 = zeros(T_vec(2), n_reps);
@@ -39,13 +39,6 @@ parfor r = 1:n_reps
     MA2est_Durbin_100(r, :) = DurbinMA1959(vec_timeseries_100(:, r), 2)';
     MA2est_Durbin_1000(r, :) = DurbinMA1959(vec_timeseries_1000(:, r), 2)';
     
-    % %% approximate MLE
-    %[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_100, [], 0, 2, 0); % last 0 for approx MLE
-    %MA2est_approxMLE_100 = MA2_temp;
-    
-    %[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_1000, [], 0, 2, 0); % last 0 for approx MLE
-    %MA2est_approxMLE_1000 = MA2_temp;
-    
     MA2temp = maq_approxMLE(vec_timeseries_100(:, r), 2);
     MA2est_approxMLE_100(r, :) = MA2temp(1:2)';
     MA2temp = maq_approxMLE(vec_timeseries_1000(:, r), 2);
@@ -62,7 +55,8 @@ parfor r = 1:n_reps
         disp([num2str(r), ' out of ', num2str(n_reps), ' replications done (', num2str(round((r/n_reps)*100, 2)), '%).']);
     end
 end
-
+clc
+disp('All done, enjoy!');
 %% plotting
 xlim_ = [(b_true(1) - .1), (b_true(2) + .1)];
 ylim_ = [min([b_true, mean(MA2est_Durbin_100), mean(MA2est_approxMLE_100), mean(MA2est_matlab_100)])-.1, ...
@@ -87,7 +81,6 @@ legend('Durbin', 'approx MLE', 'Matlab', 'true value', '', 'Location', 'south');
 %legend('boxoff')
 title(["True vs. estimated values of the MA(2)","parameter for T = 100"])
 
-%%
 % T = 1000
 figure('DefaultAxesFontSize', 14)
 scatter(b_true, [mean(MA2est_Durbin_1000(:,2)) mean(MA2est_Durbin_1000(:,1))])

@@ -28,10 +28,10 @@ close all
 
 % prep work
 b_true = -.2; % freely assumed
-T=100;
-n_obs = T;% + p;
+T=1000;
+n_obs = T;
 B = 400; % check if can be smaller or should be larger for reliable results
-n_reps = 50;
+n_reps = 100;
 alpha = .1;
 
 % initialize variables
@@ -47,7 +47,7 @@ boot_MA1est_matlab = zeros(B, n_reps);
 
 % simulate MA(1) process and then estimate the parameter
 % % for reproducibility
-rng(112); seed = rng;
+%rng(112); seed = rng;
 
 parfor r = 1:n_reps
     % % simulate MA(1) process with true parameter
@@ -65,7 +65,6 @@ parfor r = 1:n_reps
     
     for i = 1:B
         %rng(seed.Seed + i);
-
         % simulation of MA process with ESTIMATED b
         vec_timeseries_Durbin = armasim(n_obs, 1, 0, MA1est_Durbin(r));
         vec_timeseries_approxMLE = armasim(n_obs, 1, 0, MA1est_approxMLE(r));

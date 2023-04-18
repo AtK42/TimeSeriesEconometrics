@@ -18,12 +18,12 @@ end
 function loglik = condmaq_(param,timeseries_vec)
 n_obs = length(timeseries_vec);
 q = length(param);
-uvec = zeros(n_obs+q,1);
+uvec = zeros(n_obs+q, 1);
 
 % check for b values outside the unity circle
 for i = 1:q
-    if abs(b_vec(i))>1
-        b_vec(i)=1/b_vec(i);
+    if abs(param(i))>1
+        param(i)=1/param(i);
     end
 end
 for t=1:n_obs

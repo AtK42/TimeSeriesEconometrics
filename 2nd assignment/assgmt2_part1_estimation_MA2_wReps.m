@@ -46,9 +46,9 @@ parfor r = 1:n_reps
     %[MA2_temp, ~, ~, ~, ~] = armareg(vec_timeseries_1000, [], 0, 2, 0); % last 0 for approx MLE
     %MA2est_approxMLE_1000 = MA2_temp;
     
-    MA2temp = maq(vec_timeseries_100(:, r), 1, 2);
+    MA2temp = maq_approxMLE(vec_timeseries_100(:, r), 2);
     MA2est_approxMLE_100(r, :) = MA2temp(1:2)';
-    MA2temp = maq(vec_timeseries_1000(:, r), 1, 2);
+    MA2temp = maq_approxMLE(vec_timeseries_1000(:, r), 2);
     MA2est_approxMLE_1000(r, :) = MA2temp(1:2)';
     
     % %% bulilt-in MATLAB function

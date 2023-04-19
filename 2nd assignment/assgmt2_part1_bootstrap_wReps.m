@@ -27,11 +27,11 @@ clc
 close all
 
 % prep work
-b_true = -.2; % freely assumed
+b_true = -.6; % freely assumed
 T=1000;
 n_obs = T;
 B = 400; % check if can be smaller or should be larger for reliable results
-n_reps = 100;
+n_reps = 555;
 alpha = .1;
 
 % initialize variables
@@ -65,6 +65,8 @@ parfor r = 1:n_reps
     
     for i = 1:B
         %rng(seed.Seed + i);
+        % delete variables
+        %vec_timeseries_Durbin = []; vec_timeseries_approxMLE = []; vec_timeseries_matlab = [];
         % simulation of MA process with ESTIMATED b
         vec_timeseries_Durbin = armasim(n_obs, 1, 0, MA1est_Durbin(r));
         vec_timeseries_approxMLE = armasim(n_obs, 1, 0, MA1est_approxMLE(r));
@@ -98,3 +100,18 @@ cov_matlab_vec = (b_true >= ci_matlab(1,:) & (b_true <= ci_matlab(2,:)));
 cov_Durbin = mean(cov_Durbin_vec); disp(cov_Durbin);
 cov_approxMLE = mean(cov_approxMLE_vec); disp(cov_approxMLE);
 cov_matlab = mean(cov_matlab_vec); disp(cov_matlab);
+
+%%
+MA1est = [MA1est_Durbin, MA1est_approxMLE, MA1est_matlab];
+boot_MA1est = zeros(B, n_reps, 3);
+boot_MA1est(:,:,1) = boot_MA1est_Durbin;
+boot_MA1est(:,:,2) = boot_MA1est_approxMLE;
+boot_MA1est(:,:,3) = boot_MA1est_matlab;
+%%
+writematrix(MA1est, "MA1est.txt")
+writematrix(boot_MA1est_Durbin, "boot_MA1est_Durbin.txt")
+writematrix(boot_MA1est_approxMLE, "boot_MA1est_approxMLE.txt")
+writematrix(boot_MA1est_matlab, "boot_MA1est_matlab.txt")
+%%
+struc_MA1est = struc(MA1est);
+struc_boot_MA1est = struc(boot_MA1est);

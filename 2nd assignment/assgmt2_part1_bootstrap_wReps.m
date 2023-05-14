@@ -26,12 +26,15 @@ clear
 clc
 close all
 
+euler = parcluster('local');
+pool = parpool(euler,24);
+
 % prep work
 b_true = -.6; % freely assumed
 T=1000;
 n_obs = T;
 B = 400; % check if can be smaller or should be larger for reliable results
-n_reps = 555;
+n_reps = 1111;
 alpha = .1;
 
 % initialize variables
@@ -81,13 +84,20 @@ parfor r = 1:n_reps
     end
     if mod(r, 2) == 0
         clc
-        disp([num2str(r), ' out of ', num2str(n_reps), ' replications done (', num2str(round((r/n_reps)*100, 2)), '%).']);
+        %disp([num2str(r), ' out of ', num2str(n_reps), ' replications done (', num2str(round((r/n_reps)*100, 2)), '%).']);
     end
 end
 clc
 disp('All done, enjoy!')
 
 %% calculate CI
+b_true = -.6; % freely assumed
+T=1000;
+n_obs = T;
+B = 400; % check if can be smaller or should be larger for reliable results
+n_reps = 1111;
+alpha = .1;
+
 % get CI
 ci_Durbin = quantile(boot_MA1est_Durbin, [alpha/2 1-alpha/2]);
 ci_approxMLE = quantile(boot_MA1est_approxMLE, [alpha/2 1-alpha/2]);
@@ -101,17 +111,43 @@ cov_Durbin = mean(cov_Durbin_vec); disp(cov_Durbin);
 cov_approxMLE = mean(cov_approxMLE_vec); disp(cov_approxMLE);
 cov_matlab = mean(cov_matlab_vec); disp(cov_matlab);
 
-%%
+len_ci_Durbin = abs(ci_Durbin(1,:) - ci_Durbin(2,:));
+len_ci_approxMLE = abs(ci_approxMLE(1,:) - ci_approxMLE(2,:));
+len_ci_matlab = abs(ci_matlab(1,:) - ci_matlab(2,:));
+
+[ydurb,~]=ksdensity(len_ci_Durbin);
+[ymle,~]=ksdensity(len_ci_approxMLE);
+[ymat,xi]=ksdensity(len_ci_matlab);
+figure('DefaultAxesFontSize', 14)
+plot(xi, ydurb, 'r-', ...
+     xi, ymle, 'g:', ...
+     xi, ymat, 'b--', ...
+     'LineWidth', 2)
+xlabel("CI length")
+ylabel("freq")
+title(["distribution of the CI length", "for different estimation methods"]);
+legend('Durbin', 'approx MLE', 'Matlab', 'Location', 'northeast')
+
+
+xi = {'Durbin', 'approx MLE', 'Matlab'};
+y = mean([len_ci_Durbin; len_ci_approxMLE; len_ci_matlab], 2)';
+%figure;bar(y);
+%xticklabels(xi);
+
+%% stuff needed for execution via Euler cluster
 MA1est = [MA1est_Durbin, MA1est_approxMLE, MA1est_matlab];
 boot_MA1est = zeros(B, n_reps, 3);
 boot_MA1est(:,:,1) = boot_MA1est_Durbin;
 boot_MA1est(:,:,2) = boot_MA1est_approxMLE;
 boot_MA1est(:,:,3) = boot_MA1est_matlab;
-%%
-writematrix(MA1est, "MA1est.txt")
-writematrix(boot_MA1est_Durbin, "boot_MA1est_Durbin.txt")
-writematrix(boot_MA1est_approxMLE, "boot_MA1est_approxMLE.txt")
-writematrix(boot_MA1est_matlab, "boot_MA1est_matlab.txt")
-%%
-struc_MA1est = struc(MA1est);
-struc_boot_MA1est = struc(boot_MA1est);
+
+writematrix(MA1est, "MA1est.csv")
+writematrix(boot_MA1est_Durbin, "boot_MA1est_Durbin.csv")
+writematrix(boot_MA1est_approxMLE, "boot_MA1est_approxMLE.csv")
+writematrix(boot_MA1est_matlab, "boot_MA1est_matlab.csv")
+
+% MA1est = csvread("MA1est.csv");
+% boot_MA1est_Durbin = csvread("boot_MA1est_Durbin.csv");
+% boot_MA1est_approxMLE = csvread("boot_MA1est_approxMLE.csv");
+% boot_MA1est_matlab = csvread("boot_MA1est_matlab.csv");
+

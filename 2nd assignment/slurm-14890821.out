@@ -1,0 +1,19 @@
+
+                            < M A T L A B (R) >
+                  Copyright 1984-2022 The MathWorks, Inc.
+             R2022b Update 2 (9.13.0.2105380) 64-bit (glnxa64)
+                              October 26, 2022
+
+ 
+To get started, type doc.
+For product information, visit www.mathworks.com.
+ 
+Starting parallel pool (parpool) using the 'Processes' profile ...
+Connected to the parallel pool (number of workers: 24).
+All done, enjoy!
+    0.9153
+
+    0.9243
+
+    0.9279
+

@@ -27,7 +27,7 @@
 % % number of components of the mixed-normal model (corresponds to k)
 n_comp = 3; % for k = 3, we need 14 free parameters
 % % length of path (corresponds to T)
-len_paths = 5e3;
+len_path = 5e3;
 % % number of paths
 n_paths = 1e3;
 % % number of lags for GARCH model, for this code fixed at (1,1)
@@ -35,57 +35,29 @@ n_paths = 1e3;
 
 % set the model parameters
 % % mean
-mu = [.22 -.31 .01]';
+mu = [.05, .075, .04]';
 % % weights
-wghts = [1, 3, 2]';
-%wghts = 1/n_comp * ones(k, 1);
+wghts = [15, 20, 4]';
 % % GARCH coefficients
-gamma0 = .01 + zeros(3, 1);
-gamma = [.1, .44, .26]';
-Psi = [.4 .2 .3; .2 .8 .5; .3 .5 .9];
+gamma0 = [.01, .025, .03]';
+gamma = [0.2, 0.85, 0.45]';
+%Psi = diag([.1,.3,.2]);
+Psi = toeplitz([.1 .3 .2]);
 
-% checks
-% % check no of components
-if length(mu) ~= n_comp
-    error(['mu is of the wrong dimension: should contain ', num2str(n_comp), ' elements but contains ', num2str(length(mu)), ' elements'])
-%elseif length()
-end
-% % check if weights sum to one, otherwise adjust them
-if sum(wghts) ~= 1
-    wghts = wghts./sum(wghts);
-end
+[sim_values, sim_sigma2] = MN_GARCH11_sim(len_path, mu, wghts, gamma0, gamma, Psi);
 
-% ensure that the rv has zero mean
-mu_adj = mu;
-mu_adj(end) = -sum(wghts(1:end-1)./wghts(end) .* mu(1:end-1));
+% plotting
+subplot(2,1,1)
+plot(sim_values, 'k-', 'LineWidth',.1);
+title('simulated path')
 
-% initialize variables
-sim_values = zeros(len_paths, 1);
-%sim_values = zeros(len_paths, n_paths);
-sim_sigma2 = zeros(k, len_paths);
-
-% set initial values
-sim_sigma2(:, 1) = gamma0;
-sim_values(1) = wghts' * gamma0;
-
-% simulation of the paths
-for i_sim = 2:len_paths
-    sim_sigma2(:, i_sim) = gamma0 + gamma * sim_values(i_sim-1)^2 + Psi * sim_sigma2(:, i_sim-1);
-    sim_values(i_sim) = wghts' * normrnd(mu_adj, sqrt(sim_sigma2(:, i_sim)));
-end
-% for i_path = 1:n_paths
-%     for i_sim = 2:len_paths
-%         sim_sigma = alpha_GARCH * sim_values(i_sim - 1, i_path) + beta_GARCH * sim_sigma();
-%     end
-%     sim_values(:, i_path) = 1;
-% end
-
-% Plot the simulated random variables
-figure
-plot(1:len_paths, sim_values);
-title('simulated values');
-xlabel('time'); ylabel('value')
-xlim([0, len_paths])
+subplot(2,1,2)
+plot(sqrt(sim_sigma2(1,:)));
+hold on
+plot(sqrt(sim_sigma2(2,:)));
+plot(sqrt(sim_sigma2(3,:)));
+hold off
+title('volatility process')
 
 %% 2) estimation student-t GARCH model
 

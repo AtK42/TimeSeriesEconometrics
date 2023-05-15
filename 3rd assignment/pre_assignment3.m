@@ -60,5 +60,5 @@ hold off
 title('volatility process')
 
 %% 2) estimation student-t GARCH model
-
+est_model = estimate(garch('ARCHLags', 1, 'GARCHLags', 1, 'Distribution', 't'), sim_values);
 %% 3) VaR plots

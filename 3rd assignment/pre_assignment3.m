@@ -33,6 +33,7 @@ n_paths = 1e3;
 % % number of lags for GARCH model, for this code fixed at (1,1)
 %r=1; s=1;
 
+rng(8, 'multFibonacci')
 % set the model parameters
 % % mean
 mu = [.05, .075, .04]';

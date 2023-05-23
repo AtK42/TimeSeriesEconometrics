@@ -1,8 +1,8 @@
 function [param, stderr, loglik, zvec] = babygarch(y)
     % normal-GARCH(1,1) with power=2. y is vector of log percentage returns
-    initvec = [0 0.04 0.05 0.8]; % mu c_0 c_1 d_1
-    bound.lo = [-4 0 0 0];
-    bound.hi = [4 0.5 1 1];
+    initvec = [0.04 0.05 0.8 20]; % mu c_0 c_1 d_1 dof
+    bound.lo = [0 0 0 0];
+    bound.hi = [0.5 1 1 200];
     bound.which = [1 1 1 1];
     opt = optimset('Display', 'None', 'Maxiter', 500, 'TolFun', 1e-6, ...
         'TolX', 1e-6, 'LargeScale', 'off');
@@ -16,14 +16,16 @@ end
 
 function [loglik, zvec] = like(param, y, bound)
     param = einschrk(real(param), bound, 999);
-    meanterm = param(1);
-    c0 = param(2);
-    c1 = param(3);
-    d1 = param(4);
-    e = y - meanterm;
-    [zvec, sigvec] = ungarch(e, c0, c1, d1);
-    K = sqrt(2 * pi);
-    ll = gammaln((dof+1)/2) - ln(sqrt(dof * pi)) - gammaln(dof / 2) - ((dof + 1)/2) * ln(1 + y^2/dof);
+    %meanterm = param(1);
+    c0 = param(1);
+    c1 = param(2);
+    d1 = param(3);
+    dof = param(4);
+    %e = y - meanterm;
+    %[zvec, sigvec] = ungarch(e, c0, c1, d1);
+    [zvec, sigvec] = ungarch(y, c0, c1, d1);
+    %K = sqrt(2 * pi);
+    ll = gammaln((dof+1)/2) - gammaln(dof / 2) - log(sqrt(dof * pi)) - log(sigvec) - ((dof + 1)/2) * log(1 + zvec.^2/dof);
     %ll = -0.5 * zvec.^2 - log(K) - log(sigvec);
     loglik = -mean(ll);
 end

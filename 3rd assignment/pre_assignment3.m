@@ -97,35 +97,27 @@ title('volatility process')
 
 %% 1b) estimation student-t GARCH model
 est_model = estimate(garch('ARCHLags', 1, 'GARCHLags', 1, 'Distribution', 't'), sim_values);
-%
-% THE FOLLOWING IS FROM CHAT GPT:
-% % Set initial parameter values
-% theta0 = [0.01, 0.1, 0.9, 10]; % [omega, alpha, beta, df]
-% 
-% % Define the log-likelihood function
-% logLikelihood = @(theta) -sum(log(tpdf(sim_values, theta(4)) .* sqrt(theta(2)/(theta(4)-2)) .* exp(-0.5*(sim_values.^2)./(theta(4)-2))));
-% 
-% % Optimize the log-likelihood function
-% options = optimset('MaxIter', 1000, 'MaxFunEvals', 1000);
-% theta_hat = fminsearch(logLikelihood, theta0, options);
-% 
-% % Extract the estimated parameters
-% omega_hat = theta_hat(1);
-% alpha_hat = theta_hat(2);
-% beta_hat = theta_hat(3);
-% df_hat = theta_hat(4);
-% 
-% % Display the estimated parameters
-% fprintf('Estimated GARCH(1,1) coefficients:\n');
-% fprintf('omega_hat = %.4f\n', omega_hat);
-% fprintf('alpha_hat = %.4f\n', alpha_hat);
-% fprintf('beta_hat = %.4f\n', beta_hat);
-% fprintf('df_hat = %.4f\n', df_hat);
-%
-% END CHAT GPT CODE
+est_model2 = babygarch(sim_values);
+disp(' ');
+disp(o)
+%%
+disp(' ')
+fprintf('    GARCH(1,1) Conditional Variance Model:\n')
+fprintf('    ----------------------------------------\n')
+fprintf('    Conditional Probability Distribution:\n    t Distribution'   );
+
+header =  ['                                ' ;
+           '     Parameter       Value      ' ;
+           '    -----------   -----------   '];
+disp(header)
+fprintf(   '     Constant         %.3f    \n', est_model2(1));
+fprintf(   '     GARCH            %.3f    \n', est_model2(2));
+fprintf(   '     ARCH             %.3f    \n', est_model2(3));
+fprintf(   '     DoF              %.2f    \n', est_model2(4));
+
 %% 1c) 99%-VaR calculations
 alpha = .01;
-t_start = 249;
+t_start = 250;
 t_end = 999;
 delta = 1;
 % from the book p.460, discussion following the formula for the APARCH 
@@ -157,7 +149,7 @@ for t = t_start:t_end
     end
 
     % recursive evaluation of the forecasted volatility term (book p. 467)
-    gamma(t) = .5; % must be estimated somehow but not sure how
+    gamma(t) = .75; % must be estimated somehow but not sure how
     E(t) = (abs(sim_values(t)) - gamma(t) * sim_values(t))^delta;
     fore_sigma2(t+1) = est_constant(t) + est_ARCH(t) * E(t) + est_GARCH(t) * fore_sigma2(t);
 

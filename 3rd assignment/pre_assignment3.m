@@ -98,9 +98,6 @@ title('volatility process')
 %% 1b) estimation student-t GARCH model
 est_model = estimate(garch('ARCHLags', 1, 'GARCHLags', 1, 'Distribution', 't'), sim_values);
 est_model2 = babygarch(sim_values);
-disp(' ');
-disp(o)
-%%
 disp(' ')
 fprintf('    GARCH(1,1) Conditional Variance Model:\n')
 fprintf('    ----------------------------------------\n')
@@ -111,8 +108,8 @@ header =  ['                                ' ;
            '    -----------   -----------   '];
 disp(header)
 fprintf(   '     Constant         %.3f    \n', est_model2(1));
-fprintf(   '     GARCH            %.3f    \n', est_model2(2));
-fprintf(   '     ARCH             %.3f    \n', est_model2(3));
+fprintf(   '     GARCH            %.3f    \n', est_model2(3));
+fprintf(   '     ARCH             %.3f    \n', est_model2(2));
 fprintf(   '     DoF              %.2f    \n', est_model2(4));
 
 %% 1c) 99%-VaR calculations
@@ -149,7 +146,7 @@ for t = t_start:t_end
     end
 
     % recursive evaluation of the forecasted volatility term (book p. 467)
-    gamma(t) = .75; % must be estimated somehow but not sure how
+    gamma(t) = 0; % must be estimated somehow but not sure how
     E(t) = (abs(sim_values(t)) - gamma(t) * sim_values(t))^delta;
     fore_sigma2(t+1) = est_constant(t) + est_ARCH(t) * E(t) + est_GARCH(t) * fore_sigma2(t);
 
@@ -159,6 +156,42 @@ for t = t_start:t_end
 end
 
 mean(violations) % should be very close to 1%
+
+%% 2
+% Now we do multivariate, but easy stuff. Recall my SMESTI 
+%   construct from Sec 12.6. Simulate a multivariate time series from it, 
+%   with say d=5, where d is the dimension: That means, 5 stock return 
+%   series that jointly follow the SMESTI distribution. Take T to be 1000.
+% For simulating from the SMESTI, you really only need the first two lines 
+%   of section 12.6.1! For simulating the G's, please see the one-line code
+%   on page 737. 
+% Now we estimate a CCC-GARCH model. See my section 11.2.2, and notice I 
+%   show the DCC extension, and note the sentence "The CCC model is a 
+%   special case of (11.3), with a = b = 0 in (11.6)." So, you do NOT do 
+%   the DCC model, which is more work, but just CCC. This is a crucial 
+%   important model, and it is easy. It is the starting point of many of 
+%   the multivariate GARCH models, so I need you to be familiar with it.
+% Report the parameters of the estimated CCC-GARCH model, based on all 
+%   T=1000 data points for your 5-variate time series.
+
+d = 5;
+T = 1000;
+k = [1 3 5 8 10];
+
+% simulate from the SMESTI
+Y = gamrnd(k./2,k./2) ./ (k./2);
+G=1./Y;
+D = diag(G.^(1/2));
+Z = mvnrnd(zeros([d 1]), eye(d), T)';
+R = corrmat(d)+1;
+X = (D * R.^(1/2) * Z)';
+plot(X)
+title('SMESTI distributed paths')
+xlabel('t'); ylabel('value')
+
+% estimate CCC
+
+
 
 
 
